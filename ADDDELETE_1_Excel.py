@@ -2367,7 +2367,7 @@ def launch_dashboard():
 
         return fig
 
-    app.run_server(debug=True)
+    app.run_server(debug=False)
 
 
 if __name__ == '__main__':
