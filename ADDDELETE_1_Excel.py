@@ -2230,6 +2230,7 @@ def launch_dashboard():
                 )
             )
         elif selected_plot == "Product Components Status":
+            # Clean up the Status column
             df['Status'] = df['Status'].apply(lambda x: str(x).strip() if x is not None else '')
 
             # Define the colors and custom legends for statuses
@@ -2259,8 +2260,9 @@ def launch_dashboard():
                     status = component_data['Status'].values[0]
                     process_type = component_data['Process Type'].values[0]
                     machine_number = component_data['Machine Number'].values[0]
-                    delay_days = component_data['Delay Days'].values[0] if 'Delay Days' in component_data else 0
-                    delay_hours = component_data['Delay Hours'].values[0] if 'Delay Hours' in component_data else 0
+                    # Fill missing Delay Days and Delay Hours with 0
+                    delay_days = component_data['Delay Days'].fillna(0).values[0]
+                    delay_hours = component_data['Delay Hours'].fillna(0).values[0]
                     start_time = component_data['Start Time'].values[0] if 'Start Time' in component_data else None
                     end_time = component_data['End Time'].values[0] if 'End Time' in component_data else None
                     
@@ -2294,7 +2296,7 @@ def launch_dashboard():
                         ),
                         text=[machine_number],
                         textposition='middle center',
-                        name=f'',
+                        name='',
                         legendgroup=key,
                         showlegend=False,
                         hovertemplate=hover_text  # Adding hover information
@@ -2325,6 +2327,7 @@ def launch_dashboard():
                 yaxis=dict(tickmode='array', tickvals=df['Components'].unique()),
                 legend_title_text='Status and Process Type'
             )
+
         elif selected_plot=="Remaining Time":
             product_times = {}
                 
