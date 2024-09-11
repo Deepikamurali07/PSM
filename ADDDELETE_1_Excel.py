@@ -2228,7 +2228,7 @@ def launch_dashboard():
             )
         elif selected_plot == "Product Components Status":
             df['Status'] = df['Status'].apply(lambda x: str(x).strip() if x is not None else '')
-            
+
             # Define the colors and custom legends for statuses
             status_colors = {
                 "InProgress_Outsource": "orange",
@@ -2248,6 +2248,7 @@ def launch_dashboard():
 
             fig = go.Figure()
 
+            # Loop through each product and its components to plot them individually
             for product in df['Product Name'].unique():
                 product_data = df[df['Product Name'] == product]
                 for component in product_data['Components'].unique():
@@ -2255,10 +2256,29 @@ def launch_dashboard():
                     status = component_data['Status'].values[0]
                     process_type = component_data['Process Type'].values[0]
                     machine_number = component_data['Machine Number'].values[0]
+                    delay_days = component_data['Delay Days'].values[0] if 'Delay Days' in component_data else 0
+                    delay_hours = component_data['Delay Hours'].values[0] if 'Delay Hours' in component_data else 0
+                    start_time = component_data['Start Time'].values[0] if 'Start Time' in component_data else None
+                    end_time = component_data['End Time'].values[0] if 'End Time' in component_data else None
+                    
+                    # Convert start and end times to datetime if they are not already
+                    start_time = pd.to_datetime(start_time, errors='coerce')
+                    end_time = pd.to_datetime(end_time, errors='coerce')
                     
                     # Combine Late statuses into a single key
                     key = f"{status}_{process_type}" if status != "Late" else "Late"
                     color = status_colors.get(key, "grey")
+
+                    # Create hover text content
+                    hover_text = (
+                        f"Product Name: {product}<br>"
+                        f"Component: {component}<br>"
+                        f"Machine Number: {machine_number}<br>"
+                        f"Delay Days: {delay_days}<br>"
+                        f"Delay Hours: {delay_hours}<br>"
+                        f"Start Time: {start_time.strftime('%d-%b %H:%M') if pd.notnull(start_time) else 'N/A'}<br>"
+                        f"End Time: {end_time.strftime('%d-%b %H:%M') if pd.notnull(end_time) else 'N/A'}"
+                    )
                     
                     fig.add_trace(go.Scatter(
                         x=[product],
@@ -2271,9 +2291,10 @@ def launch_dashboard():
                         ),
                         text=[machine_number],
                         textposition='middle center',
-                        name=f'{product} - {component}',
+                        name=f'',
                         legendgroup=key,
-                        showlegend=False
+                        showlegend=False,
+                        hovertemplate=hover_text  # Adding hover information
                     ))
 
             # Create legend items manually
@@ -2292,6 +2313,7 @@ def launch_dashboard():
                     name=legend_name
                 ))
 
+            # Update layout
             fig.update_layout(
                 title='Status of Each Product Component',
                 xaxis_title='Product',
@@ -2300,7 +2322,6 @@ def launch_dashboard():
                 yaxis=dict(tickmode='array', tickvals=df['Components'].unique()),
                 legend_title_text='Status and Process Type'
             )
-
         elif selected_plot=="Remaining Time":
             product_times = {}
                 
