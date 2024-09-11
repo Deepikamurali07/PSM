@@ -1980,7 +1980,7 @@ def launch_dashboard():
 
         # Process the DataFrame for each plot type
         if selected_plot=="Gantt Chart":
-            # Convert 'Start Time' and 'End Time' columns to datetime, handling non-datetime values
+            
             # Convert 'Start Time' and 'End Time' columns to datetime, handling non-datetime values
             df['Start Time'] = pd.to_datetime(df['Start Time'], errors='coerce')
             df['End Time'] = pd.to_datetime(df['End Time'], errors='coerce')
@@ -1988,14 +1988,15 @@ def launch_dashboard():
             # Create new DataFrame for plotting
             plot_data = []
 
+            # Group by Product Name to process each product individually
             for product_name, product_group in df.groupby('Product Name'):
                 total_delay = timedelta(0)  # Initialize total delay for each product
                 delay_count = 0  # Counter to track how many delays exist
                 last_end_time = None
-                last_machine_number = ''  # Variable to store machine number of the last component
+                last_machine_number = ''  # Variable to store the machine number of the last component
 
                 for index, row in product_group.iterrows():
-                    # Add a small black line if SetupTimeCheck is 0
+                    # Add a small black line if Process Type is 'In House'
                     if row['Process Type'] == 'In House':
                         setup_start = row['Start Time'] - timedelta(minutes=30) if pd.notnull(row['Start Time']) else pd.NaT
                         plot_data.append({
@@ -2057,6 +2058,7 @@ def launch_dashboard():
                         'Hover End Time': last_end_time.strftime('%d-%b %H:%M') if pd.notnull(last_end_time) else 'N/A'  # Display end time of the last component for Late block in hover
                     })
 
+            # Convert plot data into DataFrame
             plot_df = pd.DataFrame(plot_data)
 
             # Drop rows where 'Start Time' is NaT before finding the min start time
@@ -2111,7 +2113,8 @@ def launch_dashboard():
                     rangeslider=dict(visible=False),
                     tickmode='linear',
                     tick0=min_start_time,  # Start tick from the minimum Start Time
-                    dtick=45000000  # 5 hours in milliseconds (5 hours * 60 minutes * 60 seconds * 1000 milliseconds)
+                    dtick=45000000,  # 5 hours in milliseconds (5 hours * 60 minutes * 60 seconds * 1000 milliseconds)
+                    range=[min_start_time, plot_df['End Time'].max()]  # Set the x-axis range to start from min_start_time
                 ),
                 height=1000,  # Adjust height for better readability
                 width=1800,  # Adjust width for better readability
